@@ -1,0 +1,40 @@
+{
+  "name": "agent-harness",
+  "version": "0.1.0",
+  "description": "A production-minded harness for AI coding agents and LLM features: hooks, skills, subagents, an MCP server, structured output with schema validation, guardrails and resilient native integrations.",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "mcp:dev": "tsx src/mcp/index.ts",
+    "mcp:start": "node dist/mcp/index.js",
+    "example": "tsx examples/classify-message.ts"
+  },
+  "author": "Leandro Silva Ferreira Junior",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
+  },
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "ai-agents",
+    "claude-code",
+    "mcp",
+    "llm",
+    "structured-output",
+    "guardrails",
+    "harness-engineering"
+  ]
+}

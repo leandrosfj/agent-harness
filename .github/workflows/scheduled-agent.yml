@@ -1,0 +1,48 @@
+# Scheduled agent run: once a week a headless coding agent audits the repo
+# with the same harness (hooks, skills, subagents) used interactively, and
+# opens an issue with what it found. Nothing is pushed by the agent.
+#
+# Requires the ANTHROPIC_API_KEY repository secret. Without it the job is
+# skipped, so forks and CI stay green.
+name: Scheduled agent audit
+
+on:
+  schedule:
+    - cron: "17 11 * * 1" # Mondays 11:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    env:
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        if: env.HAS_KEY == 'true'
+      - uses: actions/setup-node@v4
+        if: env.HAS_KEY == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        if: env.HAS_KEY == 'true'
+      - name: Run agent headless
+        if: env.HAS_KEY == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          npx -y @anthropic-ai/claude-code -p \
+            "Use the review-changes skill against the last 7 days of commits (git log --since='7 days ago' -p). \
+             Also run npm outdated and npm audit. Write a short report to audit.md: findings ranked by severity, \
+             each with file:line and the smallest fix. Do not modify any other file." \
+            --allowedTools "Read,Grep,Glob,Write,Bash(git log:*),Bash(npm outdated),Bash(npm audit:*),Bash(npm run test:*),Bash(npm run typecheck)" \
+            --max-turns 30
+      - name: Open issue with the report
+        if: env.HAS_KEY == 'true' && hashFiles('audit.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue create --title "Weekly agent audit $(date +%F)" --body-file audit.md --label agent-audit || gh issue create --title "Weekly agent audit $(date +%F)" --body-file audit.md

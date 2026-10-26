@@ -1,0 +1,50 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run test:*)",
+      "Bash(npm run typecheck)",
+      "Bash(npm run build)",
+      "Bash(npx vitest:*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "mcp__leads__search_leads",
+      "mcp__leads__funnel_stats"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "mcp__leads__move_lead_stage"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/*.pem)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard-bash.mjs" }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/protect-files.mjs" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/post-edit-typecheck.mjs", "timeout": 90 }
+        ]
+      }
+    ]
+  },
+  "enableAllProjectMcpServers": false,
+  "enabledMcpjsonServers": ["leads"]
+}
